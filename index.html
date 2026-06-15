@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Classfications Lookup Tool</title>
+  <title>Classification Lookup Tool</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -146,7 +146,7 @@
 </head>
 <body>
 <div class="container">
-  <h1>Classificaitons lookup tool</h1>
+  <h1>Classification lookup tool</h1>
   <p class="subtitle">Populate a column in your target file using a lookup from a source file. Supports .xlsx, .csv, and .tsv.</p>
 
   <div class="grid2">
@@ -310,23 +310,13 @@ function run() {
   }
 
   const baseName = tgtFileName.replace(/\.[^.]+$/, '');
-  let blob, dlName;
-
-  if (tgtFileType === 'xlsx') {
-    const ws = XLSX.utils.json_to_sheet(output, { header: tgtData.headers });
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
-    const buf = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-    blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    dlName = baseName + '_updated.xlsx';
-  } else {
-    const sep = tgtFileType === 'csv' ? ',' : '\t';
-    const mime = tgtFileType === 'csv' ? 'text/csv' : 'text/tab-separated-values';
-    const lines = [tgtData.headers.join(sep)];
-    output.forEach(row => lines.push(tgtData.headers.map(h => row[h] ?? '').join(sep)));
-    blob = new Blob([lines.join('\n')], { type: mime });
-    dlName = baseName + '_updated.' + tgtFileType;
-  }
+  const lines = [tgtData.headers.join(',')];
+  output.forEach(row => lines.push(tgtData.headers.map(h => {
+    const v = row[h] ?? '';
+    return v.toString().includes(',') ? `"${v}"` : v;
+  }).join(',')));
+  const blob = new Blob([lines.join('\n')], { type: 'text/csv' });
+  const dlName = baseName + '_updated.csv';
 
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
