@@ -1,4 +1,4 @@
-# Classificaiton Lookup Tool
+# Classification Lookup Tool
 
 A lightweight browser-based tool for populating a column in one file using a lookup from another — no installs, no server, no data ever leaves your machine.
 
