@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Campaign Lookup Tool</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      background: #f5f5f3;
+      color: #1a1a18;
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 720px;
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 2rem;
+    }
+
+    .grid2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    @media (max-width: 560px) {
+      .grid2 { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: #fff;
+      border: 0.5px solid #ddd;
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 500;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 10px;
+    }
+
+    .drop-zone {
+      border: 1.5px dashed #ccc;
+      border-radius: 10px;
+      padding: 1.25rem 1rem;
+      text-align: center;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+      background: #fafaf9;
+    }
+
+    .drop-zone:hover { background: #f0f0ee; border-color: #aaa; }
+    .drop-zone.has-file { border-style: solid; border-color: #888; background: #fff; }
+
+    .drop-zone i { font-size: 24px; color: #aaa; display: block; margin-bottom: 4px; }
+    .file-label { font-size: 13px; color: #888; }
+    .file-name { font-size: 13px; font-weight: 500; color: #333; margin-top: 4px; word-break: break-all; }
+
+    .col-row { margin-top: 10px; }
+    .col-row-label { font-size: 12px; color: #888; margin-bottom: 4px; }
+
+    select {
+      width: 100%;
+      padding: 6px 8px;
+      font-size: 13px;
+      border: 0.5px solid #ccc;
+      border-radius: 8px;
+      background: #fafaf9;
+      color: #1a1a18;
+      appearance: auto;
+    }
+
+    .options-row {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .options-row label {
+      font-size: 13px;
+      color: #555;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+
+    .run-btn {
+      width: 100%;
+      padding: 11px;
+      font-size: 14px;
+      font-weight: 500;
+      border: 0.5px solid #ccc;
+      border-radius: 8px;
+      background: #fff;
+      color: #1a1a18;
+      cursor: pointer;
+      transition: background 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .run-btn:hover { background: #f0f0ee; }
+    .run-btn:active { transform: scale(0.99); }
+    .run-btn:disabled { opacity: 0.4; cursor: default; transform: none; }
+
+    .status {
+      font-size: 13px;
+      color: #888;
+      margin-top: 12px;
+      min-height: 20px;
+    }
+    .status.ok { color: #2d7a4f; }
+    .status.err { color: #b53a3a; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Campaign lookup tool</h1>
+  <p class="subtitle">Populate a column in your target file using a lookup from a source file. Supports .xlsx, .csv, and .tsv.</p>
+
+  <div class="grid2">
+    <div class="card">
+      <p class="section-label">Source file</p>
+      <div class="drop-zone" id="src-zone" onclick="document.getElementById('src-input').click()">
+        <i class="ti ti-file-spreadsheet"></i>
+        <div class="file-label">Click to upload</div>
+        <div class="file-name" id="src-name"></div>
+      </div>
+      <input type="file" id="src-input" accept=".xlsx,.xls,.csv,.tsv,.txt" style="display:none">
+      <div class="col-row">
+        <div class="col-row-label">Key column (Campaign ID)</div>
+        <select id="src-key-col"><option>— upload file first —</option></select>
+      </div>
+      <div class="col-row">
+        <div class="col-row-label">Value column (Campaign Name)</div>
+        <select id="src-val-col"><option>— upload file first —</option></select>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="section-label">Target file</p>
+      <div class="drop-zone" id="tgt-zone" onclick="document.getElementById('tgt-input').click()">
+        <i class="ti ti-file-text"></i>
+        <div class="file-label">Click to upload</div>
+        <div class="file-name" id="tgt-name"></div>
+      </div>
+      <input type="file" id="tgt-input" accept=".xlsx,.xls,.csv,.tsv,.txt" style="display:none">
+      <div class="col-row">
+        <div class="col-row-label">Lookup key column (Lead Campaign)</div>
+        <select id="tgt-key-col"><option>— upload file first —</option></select>
+      </div>
+      <div class="col-row">
+        <div class="col-row-label">Column to populate (Friendly Campaign Name)</div>
+        <select id="tgt-out-col"><option>— upload file first —</option></select>
+      </div>
+    </div>
+  </div>
+
+  <div class="options-row">
+    <label><input type="checkbox" id="matched-only" checked> Output matched rows only</label>
+  </div>
+
+  <button class="run-btn" id="run-btn" disabled onclick="run()">
+    <i class="ti ti-arrow-right"></i> Run lookup &amp; download
+  </button>
+  <div class="status" id="status"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+let srcData = null, tgtData = null, tgtFileType = null, tgtFileName = null;
+
+function populateSelect(sel, headers, preferred) {
+  sel.innerHTML = '';
+  headers.forEach(h => {
+    const o = document.createElement('option');
+    o.value = h; o.textContent = h;
+    if (h === preferred) o.selected = true;
+    sel.appendChild(o);
+  });
+}
+
+function checkReady() {
+  document.getElementById('run-btn').disabled = !(srcData && tgtData);
+}
+
+function fileType(filename) {
+  const ext = filename.split('.').pop().toLowerCase();
+  return ['xlsx','xls'].includes(ext) ? 'xlsx' : ext === 'csv' ? 'csv' : 'tsv';
+}
+
+function parseDelimited(text, sep) {
+  const lines = text.trim().split('\n');
+  const headers = lines[0].split(sep).map(h => h.replace(/^\uFEFF/, '').trim().replace(/^"|"$/g, ''));
+  const rows = lines.slice(1).filter(l => l.trim()).map(l => {
+    const vals = l.split(sep);
+    const obj = {};
+    headers.forEach((h, i) => obj[h] = (vals[i] || '').trim().replace(/^"|"$/g, ''));
+    return obj;
+  });
+  return { headers, rows };
+}
+
+function parseXlsx(arrayBuffer) {
+  const wb = XLSX.read(arrayBuffer, { type: 'array' });
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+  const headers = rows.length ? Object.keys(rows[0]) : [];
+  return { headers, rows: rows.map(r => { const o={}; headers.forEach(h => o[h]=String(r[h]??'').trim()); return o; }) };
+}
+
+function loadFile(file, onData) {
+  const ft = fileType(file.name);
+  const reader = new FileReader();
+  if (ft === 'xlsx') {
+    reader.onload = ev => onData(parseXlsx(ev.target.result));
+    reader.readAsArrayBuffer(file);
+  } else {
+    reader.onload = ev => onData(parseDelimited(ev.target.result, ft === 'csv' ? ',' : '\t'));
+    reader.readAsText(file);
+  }
+}
+
+document.getElementById('src-input').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  document.getElementById('src-name').textContent = file.name;
+  document.getElementById('src-zone').classList.add('has-file');
+  loadFile(file, data => {
+    srcData = data;
+    populateSelect(document.getElementById('src-key-col'), data.headers, 'Campaign ID');
+    populateSelect(document.getElementById('src-val-col'), data.headers, 'Campaign');
+    checkReady();
+  });
+});
+
+document.getElementById('tgt-input').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  tgtFileName = file.name;
+  tgtFileType = fileType(file.name);
+  document.getElementById('tgt-name').textContent = file.name;
+  document.getElementById('tgt-zone').classList.add('has-file');
+  loadFile(file, data => {
+    tgtData = data;
+    populateSelect(document.getElementById('tgt-key-col'), data.headers, 'Lead Campaign');
+    populateSelect(document.getElementById('tgt-out-col'), data.headers, 'Friendly Campaign Name');
+    checkReady();
+  });
+});
+
+function run() {
+  const srcKey = document.getElementById('src-key-col').value;
+  const srcVal = document.getElementById('src-val-col').value;
+  const tgtKey = document.getElementById('tgt-key-col').value;
+  const tgtOut = document.getElementById('tgt-out-col').value;
+  const matchedOnly = document.getElementById('matched-only').checked;
+
+  const lookup = {};
+  srcData.rows.forEach(r => {
+    const k = String(r[srcKey] || '').trim();
+    if (k) lookup[k] = String(r[srcVal] || '').trim();
+  });
+
+  let matched = 0;
+  const output = [];
+  tgtData.rows.forEach(row => {
+    const k = String(row[tgtKey] || '').trim();
+    const val = lookup[k] || '';
+    if (val) { matched++; output.push({ ...row, [tgtOut]: val }); }
+    else if (!matchedOnly) { output.push(row); }
+  });
+
+  const statusEl = document.getElementById('status');
+  if (output.length === 0) {
+    statusEl.className = 'status err';
+    statusEl.textContent = 'No matches found. Check that your key columns align.';
+    return;
+  }
+
+  const baseName = tgtFileName.replace(/\.[^.]+$/, '');
+  let blob, dlName;
+
+  if (tgtFileType === 'xlsx') {
+    const ws = XLSX.utils.json_to_sheet(output, { header: tgtData.headers });
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+    const buf = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    dlName = baseName + '_updated.xlsx';
+  } else {
+    const sep = tgtFileType === 'csv' ? ',' : '\t';
+    const mime = tgtFileType === 'csv' ? 'text/csv' : 'text/tab-separated-values';
+    const lines = [tgtData.headers.join(sep)];
+    output.forEach(row => lines.push(tgtData.headers.map(h => row[h] ?? '').join(sep)));
+    blob = new Blob([lines.join('\n')], { type: mime });
+    dlName = baseName + '_updated.' + tgtFileType;
+  }
+
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = dlName;
+  a.click();
+
+  statusEl.className = 'status ok';
+  statusEl.textContent = `Done — ${matched} matched rows downloaded as ${dlName}.`;
+}
+</script>
+</body>
+</html>
